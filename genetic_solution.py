@@ -40,12 +40,22 @@ def generate_inital_depots(sets: int = 10, locations: int = 15):
     while len(initial_depots) < sets:
         depot_locations = set()
         while len(depot_locations) < locations:
-            location = random.randint(0, 2418)
+            location = random.randint(0, 2417)
             depot_locations.add(location) 
         initial_depots.append(depot_locations)
     return initial_depots
 
 def fill_depots_and_calculate_transport(depots: set[int], forecasted_biomass: pd.DataFrame):
+    """
+    Calculates the necessary transport required to fill all the depots using biomass and returns the cost
+
+    Args:
+        depots (set[int]): A set of indexes representing the location of depots.
+        forecasted_biomass (DataFrame): The forecasted biomass at each index.
+
+    Returns:
+        int: Transport cost necessary to fill up all depots.
+    """
     forecasted_biomass_list = forecasted_biomass["2018/2019"].tolist()
     cost = 0
     for depot in depots:
@@ -65,15 +75,45 @@ def fill_depots_and_calculate_transport(depots: set[int], forecasted_biomass: pd
             cost += calculate_cost_of_single_trip(index, depot, value)
     return cost
 
+def fitness_proportionate_selection(parents: set[int], fitness_scores: list[int]):
+    normalized_fitness_scores = [fitness / sum(fitness_scores) for fitness in fitness_scores]
+    cumulative_probabilities = [sum(normalized_fitness_scores[:i+1]) for i in range(len(parents))]
+
+    selected_parents = []
+    num_parents_to_select = len(parents)
+
+    for _ in range(num_parents_to_select):
+        random_num = random.random()
+        selected_parent = None
+
+        for i, cumulative_prob in enumerate(cumulative_probabilities):
+            if random_num <= cumulative_prob:
+                selected_parent = parents[i]
+                break
+
+        selected_parents.append(selected_parent)
+
+    return selected_parents
+
 def main():
     sets_of_depots = generate_inital_depots()
     for _ in range(1):
         biomass_forecast = predict_biomass()
         cost_of_depot_sets = []
+        # calculate cost to fill each depot in each set
         for depots in tqdm(sets_of_depots, desc="Iterating through parents"):
             cost = fill_depots_and_calculate_transport(depots, biomass_forecast)
             cost_of_depot_sets.append(cost)
-        print(cost_of_depot_sets)
+    
+        # choose parents to go to next generation
+        selected_parents = []
+        for index in range(len(sets_of_depots)):
+            selected_parents.append(fitness_proportionate_selection(sets_of_depots, cost_of_depot_sets))
+            
+        type(selected_parents)
+        print(len(selected_parents))  
+        print(selected_parents[0])
+        print(selected_parents[1]) 
 
 if __name__ == '__main__':
     main()
