@@ -1,14 +1,20 @@
 import pandas as pd
 
+DISTANCE_MATRIX = pd.read_csv('Distance_Matrix.csv')
+SAMPLE_SUBMISSION = pd.read_csv("sample_submission.csv")
+DEPOT_PROCESSING_CAPACITY = 20000
+REFINERY_PROCESSING_CAPACITY = 100000
+
+def calculate_cost_of_single_trip(src: int, dest: int, value: int):
+    return DISTANCE_MATRIX.iloc[src, dest + 1] * value
+
 def calculate_cost_of_transportation(biomass_demand_supply: pd.DataFrame, pellet_demand_supply: pd.DataFrame):
-    distance_matrix = pd.read_csv("Distance_Matrix.csv")
     cost = 0
     cost_in_2018 = 0
     cost_in_2019 = 0
     # Sum biomass cost 
     for index, biomass_row in biomass_demand_supply.iterrows():
-        distance = distance_matrix.iloc[int(biomass_row["source_index"]), int(biomass_row["destination_index"]) + 1]
-        distance_cost = distance * biomass_row["value"]
+        distance_cost = calculate_cost_of_single_trip(int(biomass_row["source_index"]), int(biomass_row["destination_index"]), biomass_row["value"])
         cost += distance_cost
         if biomass_row["year"] == 2018:
             cost_in_2018 += distance_cost
@@ -22,8 +28,7 @@ def calculate_cost_of_transportation(biomass_demand_supply: pd.DataFrame, pellet
     cost_in_2018 = 0
     cost_in_2019 = 0
     for index, pellet_row in pellet_demand_supply.iterrows():
-        distance = distance_matrix.iloc[int(pellet_row["source_index"]), int(pellet_row["destination_index"]) + 1]
-        distance_cost = distance * pellet_row["value"]
+        distance_cost = calculate_cost_of_single_trip(int(pellet_row["source_index"]), int(pellet_row["destination_index"]), pellet_row["value"])
         cost += distance_cost
         if pellet_row["year"] == 2018:
             cost_in_2018 += distance_cost
@@ -36,16 +41,7 @@ def calculate_cost_of_transportation(biomass_demand_supply: pd.DataFrame, pellet
     print ("==> Transport cost is", cost)
     return cost
 
-def test_calculate_transport():
-    df = pd.read_csv("sample_submission.csv")
-    biomass_demand_supply = df[df.iloc[:, 1] == "biomass_demand_supply"]
-    pellet_demand_supply = df[df.iloc[:, 1] == "pellet_demand_supply"]
-    calculate_cost_of_transportation(biomass_demand_supply, pellet_demand_supply)
-    return
-
 def calculate_cost_of_underutilization(biomass_demand_supply: pd.DataFrame, pellet_demand_supply: pd.DataFrame, depot_locations: pd.DataFrame, refinery_locations: pd.DataFrame):
-    DEPOT_PROCESSING_CAPACITY = 20000
-    REFINERY_PROCESSING_CAPACITY = 100000
     depots = {
         2018: {},
         2019: {}
@@ -84,14 +80,28 @@ def calculate_cost_of_underutilization(biomass_demand_supply: pd.DataFrame, pell
     print("==> Underutilization cost is", cost)
     return cost
 
+
+def test_calculate_transport():
+    biomass_demand_supply = SAMPLE_SUBMISSION[SAMPLE_SUBMISSION.iloc[:, 1] == "biomass_demand_supply"]
+    pellet_demand_supply = SAMPLE_SUBMISSION[SAMPLE_SUBMISSION.iloc[:, 1] == "pellet_demand_supply"]
+    calculate_cost_of_transportation(biomass_demand_supply, pellet_demand_supply)
+    return
+
 def test_calculate_underutilization():
-    df = pd.read_csv("sample_submission.csv")
-    depot_rows = df[df.iloc[:, 1] == "depot_location"]
-    refinery_rows = df[df.iloc[:, 1] == "refinery_location"]
-    biomass_demand_supply = df[df.iloc[:, 1] == "biomass_demand_supply"]
-    pellet_demand_supply = df[df.iloc[:, 1] == "pellet_demand_supply"]
+    depot_rows = SAMPLE_SUBMISSION[SAMPLE_SUBMISSION.iloc[:, 1] == "depot_location"]
+    refinery_rows = SAMPLE_SUBMISSION[SAMPLE_SUBMISSION.iloc[:, 1] == "refinery_location"]
+    biomass_demand_supply = SAMPLE_SUBMISSION[SAMPLE_SUBMISSION.iloc[:, 1] == "biomass_demand_supply"]
+    pellet_demand_supply = SAMPLE_SUBMISSION[SAMPLE_SUBMISSION.iloc[:, 1] == "pellet_demand_supply"]
     calculate_cost_of_underutilization(depot_locations=depot_rows, refinery_locations=refinery_rows, biomass_demand_supply=biomass_demand_supply, pellet_demand_supply=pellet_demand_supply)
     return
 
-test_calculate_transport()
-test_calculate_underutilization()
+
+# print(DISTANCE_MATRIX)
+# print(DISTANCE_MATRIX.sort_values(by="0", ascending=True).iloc[:,0])
+# print(calculate_cost_of_single_trip(332, 375, 1))
+# print(calculate_cost_of_single_trip(332, 426, 1))
+# print(calculate_cost_of_single_trip(332, 481, 1))
+# print(calculate_cost_of_single_trip(332, 736, 1))
+# print(calculate_cost_of_single_trip(332, 585, 1))
+# print(calculate_cost_of_single_trip(332, 1231, 1))
+# print(calculate_cost_of_single_trip(332, 194, 1))
