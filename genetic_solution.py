@@ -111,9 +111,7 @@ def main():
             selected_parents.append(fitness_proportionate_selection(sets_of_depots, cost_of_depot_sets))
             
         type(selected_parents)
-        print(len(selected_parents))  
-        print(selected_parents[0])
-        print(selected_parents[1]) 
+        print(cost_of_depot_sets)
 
 if __name__ == '__main__':
     main()
