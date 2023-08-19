@@ -94,14 +94,3 @@ def test_calculate_underutilization():
     pellet_demand_supply = SAMPLE_SUBMISSION[SAMPLE_SUBMISSION.iloc[:, 1] == "pellet_demand_supply"]
     calculate_cost_of_underutilization(depot_locations=depot_rows, refinery_locations=refinery_rows, biomass_demand_supply=biomass_demand_supply, pellet_demand_supply=pellet_demand_supply)
     return
-
-
-# print(DISTANCE_MATRIX)
-# print(DISTANCE_MATRIX.sort_values(by="0", ascending=True).iloc[:,0])
-# print(calculate_cost_of_single_trip(332, 375, 1))
-# print(calculate_cost_of_single_trip(332, 426, 1))
-# print(calculate_cost_of_single_trip(332, 481, 1))
-# print(calculate_cost_of_single_trip(332, 736, 1))
-# print(calculate_cost_of_single_trip(332, 585, 1))
-# print(calculate_cost_of_single_trip(332, 1231, 1))
-# print(calculate_cost_of_single_trip(332, 194, 1))
