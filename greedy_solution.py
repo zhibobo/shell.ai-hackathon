@@ -1,5 +1,6 @@
 from solution import predict_biomass
 from cost_helpers import DEPOT_PROCESSING_CAPACITY, REFINERY_PROCESSING_CAPACITY, calculate_cost_of_single_trip
+from generate_submission import format_biomass_demand_supply, generate_submission
 from tqdm import tqdm
 import pandas as pd
 import seaborn as sns
@@ -53,11 +54,11 @@ def update_biomass(new_depot: int, biomass_forecast: pd.DataFrame, dist_mat: pd.
         if biomass_in_depot >= DEPOT_PROCESSING_CAPACITY:
             break
         if biomass_in_depot + biomass_forecast.loc[index,'2018/2019'] > DEPOT_PROCESSING_CAPACITY:
-            update_biomass_demand_supply(index, DEPOT_PROCESSING_CAPACITY - biomass_in_depot, biomass_demand_supply)
+            update_biomass_demand_supply(new_depot, index, DEPOT_PROCESSING_CAPACITY - biomass_in_depot, biomass_demand_supply)
             biomass_forecast.loc[index,'2018/2019'] -= DEPOT_PROCESSING_CAPACITY - biomass_in_depot
             biomass_in_depot = DEPOT_PROCESSING_CAPACITY
         else: 
-            update_biomass_demand_supply(index, biomass_forecast.loc[index,'2018/2019'], biomass_demand_supply)
+            update_biomass_demand_supply(new_depot, index, biomass_forecast.loc[index,'2018/2019'], biomass_demand_supply)
             biomass_in_depot += biomass_forecast.loc[index,'2018/2019']
             biomass_forecast.loc[index,'2018/2019'] = 0
         cost += calculate_cost_of_single_trip(index, new_depot, value)
@@ -106,18 +107,12 @@ def generate_depot_matrix(depots: list):
         new_dist_mat.append(DISTANCE_MATRIX.iloc[index,:])
     return new_dist_mat
 
-def update_biomass_demand_supply(depot: int, biomass_demand: int, biomass_demand_supply: pd.DataFrame):
+def update_biomass_demand_supply(depot: int, biomass_location: int, biomass_demand: int, biomass_demand_supply: pd.DataFrame):
     if depot not in biomass_demand_supply:
-        biomass_demand_supply[depot] = biomass_demand
+        biomass_demand_supply[depot] = {biomass_location: biomass_demand}
     else:
-        biomass_demand_supply[depot] += biomass_demand
+        biomass_demand_supply[depot][biomass_location] = biomass_demand
     return
-
-def format_biomass_demand_supply(biomass_demand_supply: pd.DataFrame):
-    for index in range(2418):
-        if index not in biomass_demand_supply:
-            biomass_demand_supply[index] = 0
-
 
 def main():
     #Choosing the depot locations
@@ -145,7 +140,7 @@ def main():
     print("The total transportation cost (harvest to depot) is", total_cost)
     sorted_depots = sorted(depots)
     print(sorted_depots)
-    format_biomass_demand_supply(biomass_demand_supply)
+    generate_submission(depot_locations=sorted_depots, refinery_locations=["1", "2", "3", "4" ,"5"], biomass_demand_supply=biomass_demand_supply)
     
 
     #Choosing the refinaries
