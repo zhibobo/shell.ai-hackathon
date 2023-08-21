@@ -7,12 +7,12 @@ from matplotlib import pyplot as plt
 
 DISTANCE_MATRIX = pd.read_csv('Distance_Matrix.csv')
 SAMPLE_SUBMISSION = pd.read_csv("sample_submission.csv")
-NUMBER_OF_DEPOTS = 5
-NUMBER_OF_REFINERIES = 5
+NUMBER_OF_DEPOTS = 15
+NUMBER_OF_REFINERIES = 3
 
 
 
-def generate_cost_depots(dist_mat: pd.DataFrame, biomass_forecast: pd.Series):
+def generate_cost_depots(dist_mat: pd.DataFrame, biomass_forecast: pd.DataFrame):
     """
     Calculates the cost of transporting all biomass to a single depot. 
 
@@ -30,7 +30,7 @@ def generate_cost_depots(dist_mat: pd.DataFrame, biomass_forecast: pd.Series):
         cost_list.sort(key = lambda x: x[1])
     return(int(cost_list[0][0]))
 
-def update_biomass(new_depot: int, biomass_forecast: pd.DataFrame, dist_mat: pd.DataFrame):
+def update_biomass_depot(new_depot: int, biomass_forecast: pd.DataFrame, dist_mat: pd.DataFrame):
     """
     Calculates the cost of transportation of biomass to current depot. Updates the biomass at respective
     depots after movement
@@ -99,46 +99,89 @@ def remove_empty_dist(index_to_remove: list, dist_mat: pd.DataFrame):
     return dist_mat
 
 def generate_depot_matrix(depots: list):
-    new_dist_mat = pd.DataFrame()
-    for index in depots:
-        print(index)
-        new_dist_mat.append(DISTANCE_MATRIX.iloc[index,:])
-    return new_dist_mat
+    new_dist_mat = []
+    for index in range(len(DISTANCE_MATRIX.columns)-1):
+        if index not in depots:
+            continue
+        else:
+            new_dist_mat.append(DISTANCE_MATRIX.loc[int(index)])
+    return pd.DataFrame(new_dist_mat)
+
+def update_biomass_refinery(new_refinery: int, depot_forecast: pd.DataFrame, dist_mat_2: pd.DataFrame):
+    """
+    Calculates the cost of transportation of biomass to current depot. Updates the biomass at respective
+    depots after movement
+
+    Args:
+        new_depot: Index of depot
+        biomass_forecast: Forecasted biomass at each index before update
+        dist_mat: distance between each biomass location
+
+    Returns:
+        cost_of_transportation: total amount of biomass * distance
+        updated_biomass_forecast: Changes in biomass forecast due to biomass movement
+
+    """
+    cost = 0
+    biomass_in_refinery = 0
+    shortest_dist_matrix = dist_mat_2.sort_values(by=str(new_refinery), ascending=True)
+    shortest_dist_col = shortest_dist_matrix.loc[:, str(new_refinery)]
+    for index, value in shortest_dist_col.items():
+        if biomass_in_refinery >= REFINERY_PROCESSING_CAPACITY:
+            break
+        if biomass_in_refinery + depot_forecast.loc[index,'2018/2019'] > REFINERY_PROCESSING_CAPACITY:
+            depot_forecast.loc[index,'2018/2019'] -= REFINERY_PROCESSING_CAPACITY - biomass_in_refinery
+            biomass_in_refinery = REFINERY_PROCESSING_CAPACITY
+        else: 
+            biomass_in_refinery += depot_forecast.loc[index,'2018/2019']
+            depot_forecast.loc[index,'2018/2019'] = 0
+        
+        cost += calculate_cost_of_single_trip(index, new_refinery, value)
+    return cost, pd.DataFrame(depot_forecast)
 
 def main():
     #Choosing the depot locations
     biomass_forecast = predict_biomass().iloc[:,[0,11]]
-    print(biomass_forecast)
-    dist_mat = DISTANCE_MATRIX
-    print(dist_mat)
-    print(dist_mat.iloc[810,:])
+    dist_mat = DISTANCE_MATRIX.copy()
     total_cost = 0
     depots = []
+    
     for i in tqdm(range(NUMBER_OF_DEPOTS), desc = "Iterating through depots"):
         generated_depot = generate_cost_depots(dist_mat, biomass_forecast)
         print("The next depot is " + str(generated_depot))
         depots.append(generated_depot)
 
-        cost, updated_biomass_forecast = update_biomass(generated_depot,biomass_forecast,dist_mat)
+        move_to_depot_cost, updated_biomass_forecast = update_biomass_depot(generated_depot,biomass_forecast,dist_mat)
         #updated_biomass_forecast.to_csv("after_prev_iteration.csv")
-        total_cost += cost
+        total_cost += move_to_depot_cost
 
         index_to_remove, biomass_forecast = remove_empty_biomass(updated_biomass_forecast)
         #biomass_forecast.to_csv('after_remove_empty_biomass.csv')
         dist_mat = remove_empty_dist(index_to_remove, dist_mat)
         #dist_mat.to_csv('after_remove_empty_dist.csv')
-    print("The total transportation cost (harvest to depot) is" + str(total_cost))
+    print("The total transportation cost (harvest to depot) is " + str(total_cost))
     depots = sorted(depots)
-    print(depots)
-
-    #Choosing the refinaries
-    """ 
-    ***Work in Progress***
-    depot_forecast = pd.DataFrame({'Index': depots, '2018/2019':[20000,]*NUMBER_OF_DEPOTS})
+    
+    #Choosing the refinarie
+    depot_forecast = pd.DataFrame({'Index': depots, '2018/2019':[int(20000),]*NUMBER_OF_DEPOTS}, index = depots)
     dist_mat_2 = generate_depot_matrix(depots)
-    print(dist_mat_2)
-    """
+    refineries = []
+    for i in tqdm(range(NUMBER_OF_REFINERIES), desc = "Iterating through refineries"):
+        generated_refinery = generate_cost_depots(dist_mat_2, depot_forecast)
+        print("The next refinery is " + str(generated_refinery))
+        refineries.append(generated_refinery)
 
+        move_to_refinery_cost , updated_depot_forecast = update_biomass_refinery(generated_refinery,depot_forecast,dist_mat_2)
+        total_cost += move_to_refinery_cost
+
+        index_to_remove, depot_forecast = remove_empty_biomass(updated_depot_forecast)
+        #biomass_forecast.to_csv('after_remove_empty_biomass.csv')
+        dist_mat_2 = remove_empty_dist(index_to_remove, dist_mat_2)
+        #dist_mat.to_csv('after_remove_empty_dist.csv')
+
+    print("The total transportation cost (harvest to refineries) is " + str(total_cost))
+    print(refineries)
+        
     #Generating heatmap
     """
     initial_forecast = predict_biomass()
