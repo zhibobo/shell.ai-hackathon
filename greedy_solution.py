@@ -1,5 +1,6 @@
 from solution import predict_biomass
 from cost_helpers import DEPOT_PROCESSING_CAPACITY, REFINERY_PROCESSING_CAPACITY, calculate_cost_of_single_trip
+from generate_submission import format_biomass_demand_supply, generate_submission
 from tqdm import tqdm
 import pandas as pd
 import seaborn as sns
@@ -30,7 +31,7 @@ def generate_cost_depots(dist_mat: pd.DataFrame, biomass_forecast: pd.DataFrame)
         cost_list.sort(key = lambda x: x[1])
     return(int(cost_list[0][0]))
 
-def update_biomass_depot(new_depot: int, biomass_forecast: pd.DataFrame, dist_mat: pd.DataFrame):
+def update_biomass_depot(new_depot: int, biomass_forecast: pd.DataFrame, dist_mat: pd.DataFrame, biomass_demand_supply: pd.DataFrame):
     """
     Calculates the cost of transportation of biomass to current depot. Updates the biomass at respective
     depots after movement
@@ -53,12 +54,13 @@ def update_biomass_depot(new_depot: int, biomass_forecast: pd.DataFrame, dist_ma
         if biomass_in_depot >= DEPOT_PROCESSING_CAPACITY:
             break
         if biomass_in_depot + biomass_forecast.loc[index,'2018/2019'] > DEPOT_PROCESSING_CAPACITY:
+            update_biomass_demand_supply(new_depot, index, DEPOT_PROCESSING_CAPACITY - biomass_in_depot, biomass_demand_supply)
             biomass_forecast.loc[index,'2018/2019'] -= DEPOT_PROCESSING_CAPACITY - biomass_in_depot
             biomass_in_depot = DEPOT_PROCESSING_CAPACITY
         else: 
+            update_biomass_demand_supply(new_depot, index, biomass_forecast.loc[index,'2018/2019'], biomass_demand_supply)
             biomass_in_depot += biomass_forecast.loc[index,'2018/2019']
             biomass_forecast.loc[index,'2018/2019'] = 0
-        
         cost += calculate_cost_of_single_trip(index, new_depot, value)
     return cost, pd.DataFrame(biomass_forecast)
 
@@ -139,6 +141,13 @@ def update_biomass_refinery(new_refinery: int, depot_forecast: pd.DataFrame, dis
         cost += calculate_cost_of_single_trip(index, new_refinery, value)
     return cost, pd.DataFrame(depot_forecast)
 
+def update_biomass_demand_supply(depot: int, biomass_location: int, biomass_demand: int, biomass_demand_supply: pd.DataFrame):
+    if depot not in biomass_demand_supply:
+        biomass_demand_supply[depot] = {biomass_location: biomass_demand}
+    else:
+        biomass_demand_supply[depot][biomass_location] = biomass_demand
+    return
+
 def main():
     #Choosing the depot locations
     biomass_forecast = predict_biomass().iloc[:,[0,11]]
@@ -146,12 +155,13 @@ def main():
     total_cost = 0
     depots = []
     
+    biomass_demand_supply = {}
     for i in tqdm(range(NUMBER_OF_DEPOTS), desc = "Iterating through depots"):
         generated_depot = generate_cost_depots(dist_mat, biomass_forecast)
         print("The next depot is " + str(generated_depot))
         depots.append(generated_depot)
 
-        move_to_depot_cost, updated_biomass_forecast = update_biomass_depot(generated_depot,biomass_forecast,dist_mat)
+        move_to_depot_cost, updated_biomass_forecast = update_biomass_depot(generated_depot,biomass_forecast,dist_mat, biomass_demand_supply)
         #updated_biomass_forecast.to_csv("after_prev_iteration.csv")
         total_cost += move_to_depot_cost
 
@@ -161,8 +171,9 @@ def main():
         #dist_mat.to_csv('after_remove_empty_dist.csv')
     print("The total transportation cost (harvest to depot) is " + str(total_cost))
     depots = sorted(depots)
+    print(depots)
     
-    #Choosing the refinarie
+    #Choosing the refinaries
     depot_forecast = pd.DataFrame({'Index': depots, '2018/2019':[int(20000),]*NUMBER_OF_DEPOTS}, index = depots)
     dist_mat_2 = generate_depot_matrix(depots)
     refineries = []
