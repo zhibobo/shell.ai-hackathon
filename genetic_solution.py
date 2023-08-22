@@ -97,7 +97,7 @@ def tournament_selection(population, fitness_scores, tournament_size):
 
 def perform_crossover(parent1: list[int], parent2: list[int]):
     crossover_point = random.randint(0, len(parent1))
-    offspring1 = parent1[:crossover_point] + parent2[crossover_point:]
+    offspring1 = parent1[:crossover_point] + parent2[crossover_point:] # CATCH DUPLICATES HERE
     offspring2 = parent2[:crossover_point] + parent1[crossover_point:]
     return offspring1, offspring2
 
@@ -112,18 +112,27 @@ def perform_mutation(child: set[int], mutation_rate: float):
 
 
 def main():
-    sets_of_depots = generate_inital_depots()
-    for _ in tqdm(range(1000), desc="Iteration:"):
-        biomass_forecast = predict_biomass()
+    iterations = input("How many iterations: ")
+    if iterations == "secret":
+        sets_of_depots = [[1086, 1740, 2233, 1469, 2178, 1101, 1938, 1485, 1907, 2333, 353, 1236, 1694, 1988, 1010], [1086, 1740, 985, 1469, 1790, 1101, 1938, 1485, 1907, 2333, 353, 1360, 1694, 1988, 1010], [1086, 1740, 985, 1469, 94, 1101, 1938, 1485, 1907, 2333, 353, 1360, 1694, 1988, 1010], [1086, 1740, 985, 1469, 94, 1101, 1938, 509, 1186, 1412, 353, 1360, 1694, 1988, 552], [1086, 1740, 985, 1469, 94, 1101, 1938, 1485, 1186, 2333, 353, 2114, 1694, 1988, 552], [1086, 1740, 985, 1469, 94, 1101, 1938, 2301, 1186, 2333, 353, 2114, 
+1694, 1988, 552], [1086, 1740, 985, 1469, 94, 1101, 1938, 1485, 1186, 1412, 353, 1360, 1694, 1988, 2048], [1086, 1740, 985, 1469, 1558, 1101, 2130, 1485, 1225, 2333, 353, 1360, 1633, 1988, 552], [1086, 1740, 985, 1469, 94, 1101, 1938, 1485, 1907, 2333, 353, 1360, 1694, 1988, 1010], [1086, 1740, 985, 1469, 94, 1101, 1938, 1485, 1907, 2333, 353, 1360, 1694, 1988, 552]]
+        print("Using saved depots, with lowest cost:", min([40218638.294213206, 56922050.33877739, 64986401.15816496, 16950344.489914026, 132152781.16508712, 87053075.85846142, 62963186.62290612, 49685494.09948571, 32883745.404578935, 16704417.449202554]))
+        iterations = int(input("How many iterations: ")) 
+    else:
+        iterations = int(iterations)
+        sets_of_depots = generate_inital_depots()
+    biomass_forecast = predict_biomass()
+    for _ in tqdm(range(iterations), desc="Iteration:"):
+        biomass_for_iteration = biomass_forecast
         cost_of_depot_sets = []
         # calculate cost to fill each depot in each set
         for depots in sets_of_depots:
-            cost = fill_depots_and_calculate_transport(depots, biomass_forecast)
+            cost = fill_depots_and_calculate_transport(depots, biomass_for_iteration)
             cost_of_depot_sets.append(cost)
         if _ == 0: print("Initial cost:", cost_of_depot_sets)
 
         # choose parents to have the next generation
-        tournament_size = 3  # Tournament size
+        tournament_size = 2  # Tournament size 20% of gen size
         population = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         selected_parents = tournament_selection(population, cost_of_depot_sets, tournament_size)
 
@@ -146,7 +155,21 @@ def main():
         # print(children)
         sets_of_depots = children
     print("Final cost:", cost_of_depot_sets)
+    print("Final sets of Depots:", sets_of_depots)
 
 
 if __name__ == '__main__':
     main()
+
+'''
+After running for: 3000 iterations ~4hrs
+Final cost: [40218638.294213206, 56922050.33877739, 64986401.15816496, 16950344.489914026, 132152781.16508712, 87053075.85846142, 62963186.62290612, 49685494.09948571, 32883745.404578935, 16704417.449202554]
+Final sets of Depots: [[1086, 1740, 2233, 1469, 2178, 1101, 1938, 1485, 1907, 2333, 353, 1236, 1694, 1988, 1010], [1086, 1740, 985, 1469, 1790, 1101, 1938, 1485, 1907, 2333, 353, 1360, 1694, 1988, 1010], [1086, 1740, 985, 1469, 94, 1101, 1938, 1485, 1907, 2333, 353, 1360, 1694, 1988, 1010], [1086, 1740, 985, 1469, 94, 1101, 1938, 509, 1186, 1412, 353, 1360, 1694, 1988, 552], [1086, 1740, 985, 1469, 94, 1101, 1938, 1485, 1186, 2333, 353, 2114, 1694, 1988, 552], [1086, 1740, 985, 1469, 94, 1101, 1938, 2301, 1186, 2333, 353, 2114, 
+1694, 1988, 552], [1086, 1740, 985, 1469, 94, 1101, 1938, 1485, 1186, 1412, 353, 1360, 1694, 1988, 2048], [1086, 1740, 985, 1469, 1558, 1101, 2130, 1485, 1225, 2333, 353, 1360, 1633, 1988, 552], [1086, 1740, 985, 1469, 94, 1101, 1938, 1485, 1907, 2333, 353, 1360, 1694, 1988, 1010], [1086, 1740, 985, 1469, 94, 1101, 1938, 1485, 1907, 2333, 353, 1360, 1694, 1988, 552]]
+
+After another 1000 iterations ~1hr
+Final cost: [168013246.29398298, 19494886.809439886, 45479407.13145936, 19494886.809439886, 80184812.0997883, 28397082.31471725, 32518186.973485917, 52168289.94307286, 56064185.35552238, 20700790.50231924]
+Final sets of Depots: [[2333, 1575, 611, 2034, 2119, 64, 929, 941, 684, 924, 2002, 992, 2143, 1921, 1026], [2333, 1575, 611, 2034, 1643, 64, 929, 941, 684, 924, 2002, 992, 395, 1921, 1026], [2333, 1575, 611, 1098, 2119, 64, 929, 941, 684, 924, 1042, 992, 2143, 1921, 1026], [2333, 1521, 260, 1284, 1036, 64, 1872, 2079, 684, 297, 2002, 992, 2143, 1921, 1026], [2333, 1575, 611, 2034, 2119, 1037, 929, 941, 684, 924, 752, 992, 2143, 1921, 1026], [2333, 644, 611, 1842, 2119, 64, 929, 941, 684, 924, 2002, 992, 2143, 1921, 1026], [2333, 1575, 611, 2034, 2119, 1037, 929, 941, 684, 924, 2002, 992, 2143, 1921, 1026], [2333, 1575, 611, 2034, 2119, 64, 
+1872, 2079, 684, 297, 752, 992, 2143, 1921, 1026], [2333, 1598, 243, 771, 1036, 64, 929, 941, 453, 924, 2002, 992, 2143, 1921, 1026], [2333, 1521, 611, 1842, 2119, 64, 929, 941, 684, 924, 2002, 992, 2143, 1921, 1026]]
+
+'''

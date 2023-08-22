@@ -88,24 +88,40 @@ temp_data = {1161: {1161: 241.45173262500003, 1162: 131.45091437875, 1160: 185.7
 {}, 2406: {}, 2407: {}, 2408: {}, 2409: {}, 2410: {}, 2411: {}, 2412: {}, 2413: {}, 2414: {}, 2415: {}, 2416: {}, 2417: {}}
 
 
-def generate_submission(depot_locations: pd.DataFrame, refinery_locations: pd.DataFrame, biomass_demand_supply: pd.DataFrame):
+def generate_submission(depot_locations: pd.DataFrame, refinery_locations: pd.DataFrame, biomass_demand_supply: pd.DataFrame, pellet_demand_supply: pd.DataFrame):
     refineries_location = format_refineries_location(refinery_locations) # PASS VALUES HERE
-    biomass_forecast = format_biomass_forecast()
+    biomass_forecast_2018, biomass_forecast_2019 = format_biomass_forecast()
     depot_location = format_depot_location(depot_locations)
-    biomass_demand_supply = format_biomass_demand_supply(biomass_demand_supply)
-    result_df = pd.concat([depot_location, refineries_location, biomass_forecast, biomass_demand_supply], ignore_index=True)
+    biomass_demand_supply_2018, biomass_demand_supply_2019 = format_biomass_demand_supply(biomass_demand_supply)
+    pellet_demand_supply_2018, pellet_demand_supply_2019 = format_pellet_demand_supply(pellet_demand_supply)
+    result_df = pd.concat([depot_location, 
+                           refineries_location, 
+                           biomass_forecast_2018, 
+                           biomass_demand_supply_2018, 
+                           pellet_demand_supply_2018, 
+                           biomass_forecast_2019,
+                           biomass_demand_supply_2019,
+                           pellet_demand_supply_2019], ignore_index=True)
     reordering = ["year","data_type","source_index","destination_index","value"]
     result_df = result_df[reordering]
+    result_df['destination_index'] = result_df['destination_index'].apply(convert_to_int)
+    print(result_df)
     result_df.to_csv("submission.csv", index=False)
+    print("==> Submission generated!")
 
-def format_biomass_demand_supply(biomass_demand_supply: pd.DataFrame):
+def convert_to_int(value):
+    if pd.notna(value):
+        return int(value)
+    return value
+
+def format_biomass_demand_supply(biomass_demand_supply: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     for index in range(2418):
         if index not in biomass_demand_supply:
             biomass_demand_supply[index] = {}
     depot_locations = []
     biomass_locations = []
     value = []
-    for depot_location, locations in temp_data.items():
+    for depot_location, locations in biomass_demand_supply.items():
         for location, biomass in locations.items():
             depot_locations.append(depot_location)
             biomass_locations.append(location)
@@ -116,26 +132,49 @@ def format_biomass_demand_supply(biomass_demand_supply: pd.DataFrame):
         'value': value
     }
     biomass_demand_supply = pd.DataFrame(data)
+    biomass_demand_supply["destination_index"] = biomass_demand_supply["destination_index"].astype(int)
+    biomass_demand_supply["data_type"] = "biomass_demand_supply"
     biomass_demand_supply_2018 = pd.DataFrame(biomass_demand_supply)
     biomass_demand_supply_2019 = pd.DataFrame(biomass_demand_supply)
     biomass_demand_supply_2018["year"] = 2018
     biomass_demand_supply_2019["year"] = 2019
-    result_df = pd.concat([biomass_demand_supply_2018, biomass_demand_supply_2019], ignore_index=True)
-    result_df["data_type"] = "biomass_demand_supply"
-    return result_df
+    return biomass_demand_supply_2018, biomass_demand_supply_2019
 
-def format_biomass_forecast():
+def format_pellet_demand_supply(pellet_demand_supply: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    refinery_locations = []
+    depot_locations = []
+    value = []
+    for refinery_location, locations in pellet_demand_supply.items():
+        for location, depot in locations.items():
+            refinery_locations.append(refinery_location)
+            depot_locations.append(location)
+            value.append(depot)
+    data = {
+        'source_index': depot_locations,
+        'destination_index': refinery_locations,
+        'value': value
+    }
+    pellet_demand_supply = pd.DataFrame(data)
+    pellet_demand_supply["destination_index"] = pellet_demand_supply["destination_index"].astype(int)
+    pellet_demand_supply["data_type"] = "pellet_demand_supply"
+    pellet_demand_supply_2018 = pd.DataFrame(pellet_demand_supply)
+    pellet_demand_supply_2019 = pd.DataFrame(pellet_demand_supply)
+    pellet_demand_supply_2018["year"] = 2018
+    pellet_demand_supply_2019["year"] = 2019
+    return pellet_demand_supply_2018, pellet_demand_supply_2019
+
+def format_biomass_forecast() -> tuple[pd.DataFrame, pd.DataFrame]:
     forecast = predict_biomass()
-    forecast_2018 = forecast.iloc[:,[0,11]]
-    forecast_2019 = forecast.iloc[:,[0,11]]
+    forecast.rename(columns={"2018/2019": "value"}, inplace=True)
+    forecast.rename(columns={"Index": "source_index"}, inplace=True)
+    forecast_2018 = forecast.iloc[:,[0,11]].copy()
+    forecast_2019 = forecast.iloc[:,[0,11]].copy()
+    forecast_2018["data_type"] = "biomass_forecast"
+    forecast_2019["data_type"] = "biomass_forecast"
     forecast_2018["year"] = 2018
-    forecast_2019["year"] = 2019
-    result_df = pd.concat([forecast_2018, forecast_2019], ignore_index=True)
-    # rename indexes    
-    result_df["data_type"] = "biomass_forecast"
-    result_df.rename(columns={"2018/2019": "value"}, inplace=True)
-    result_df.rename(columns={"Index": "source_index"}, inplace=True)
-    return result_df
+    forecast_2019["year"] = 2019  
+
+    return forecast_2018, forecast_2019
 
 def format_depot_location(depots: List[str]):
     depots_df = pd.DataFrame(depots)
@@ -150,6 +189,20 @@ def format_refineries_location(refineries: List[str]):
     refineries_df["data_type"] = "refinery_location"
     refineries_df.rename(columns={0: "source_index"}, inplace=True)
     return refineries_df
+
+def update_biomass_demand_supply(depot: int, biomass_location: int, biomass_demand: int, biomass_demand_supply: pd.DataFrame):
+    if depot not in biomass_demand_supply:
+        biomass_demand_supply[depot] = {biomass_location: biomass_demand}
+    else:
+        biomass_demand_supply[depot][biomass_location] = biomass_demand
+    return
+
+def update_pellet_demand_supply(refinery: int, depot_location: int, pellet_demand: int, pellet_demand_supply: pd.DataFrame):
+    if refinery not in pellet_demand_supply:
+        pellet_demand_supply[refinery] = {depot_location: pellet_demand}
+    else:
+        pellet_demand_supply[refinery][depot_location] = pellet_demand
+    return
 
 def main():
     return

@@ -6,6 +6,7 @@ DEPOT_PROCESSING_CAPACITY = 20000
 REFINERY_PROCESSING_CAPACITY = 100000
 
 def calculate_cost_of_single_trip(src: int, dest: int, value: int):
+    
     return DISTANCE_MATRIX.iloc[src, dest + 1] * value
 
 def calculate_cost_of_transportation(biomass_demand_supply: pd.DataFrame, pellet_demand_supply: pd.DataFrame):

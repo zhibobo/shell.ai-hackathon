@@ -1,0 +1,25 @@
+This is our greedy solution.
+
+Assume the best Depot locations give the best Refinery locations
+Assume we should always fill Depot to minimize Underutilization cost
+
+As there is limited information for forecasting biomass, an average is used to forecast.
+
+Total forecasted biomass is 341k. 
+Accounting for fluctuations of 5%, 324k & 359k 
+Minimum biomass to collect (constraints is 80%), 259k & 286k. 
+Safe to collect more than 286k < 300k = 15 depots (multiples of 20k)
+
+Again, to minimize Underutilization, 3 refineries are used.
+
+For depots, we calculate the depot cheapest to fill up with the surrounding biomass, 
+where cost is calculated by biomass value multiplied by distance. We then select that depot 
+and fill up it up with the surrounding biomass. We remove the biomass from the grid, and 
+find the cheapest depot to fill up again. By repeating this process, we find the 15 
+cheapest depots that can minimize cost.
+
+For refinaries, our approach is the same as depots. We calculate the refinery that is the 
+cheapest to fill up with the surrounding depots, where cost is calculated by depot value 
+multiplied by distance. We then select that depot and fill up it up with the surrounding 
+pellets. We remove the pellets from the grid, and find the cheapest refinery to fill up again. 
+By repeating this process, we find the 3 cheapest refinaries that can minimize cost.
