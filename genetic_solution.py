@@ -10,7 +10,6 @@ If cost of transport from nearest biomass A -> depot > cost of underutilization 
 Else if cost of transport from nearest biomass B -> depot <= cost of underutilization of depot,
     is worth it to continue filling
 
-
 Assume that Depot/Refinery construction will not destroy biomass
 Assume the best Depot locations give the best Refinery locations
 Assume we should always fill Depot
@@ -41,7 +40,7 @@ First, find the best Depot locations.
 DISTANCE_MATRIX = pd.read_csv('Distance_Matrix.csv')
 SAMPLE_SUBMISSION = pd.read_csv("sample_submission.csv")
 
-def generate_inital_depots(sets: int = 10, locations: int = 15):
+def generate_inital_locations(sets: int = 10, locations: int = 15):
     initial_depots = []
     while len(initial_depots) < sets:
         depot_locations = set()
@@ -148,13 +147,13 @@ def perform_mutation(children: list[set[int]], mutation_rate: float):
 def main():
     iterations = input("How many iterations: ")
     if iterations == "secret":
-        sets_of_depots = [{388, 811, 1485, 2286, 1101, 1360, 1938, 1907, 504, 94, 1086, 985, 1981, 1694, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1485, 2286, 1101, 1360, 1938, 1907, 94, 504, 985, 1086, 1981, 1694, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}]
-        print("Using saved depots, with lowest cost:", min([7584148.660531587, 18573004.484119624, 7584148.660531587, 7584148.660531587, 8352251.634412729, 7964046.886082531, 7964046.886082531, 7964046.886082531, 8352251.634412722, 8352251.634412722]
+        sets_of_depots = [{388, 504, 811, 1485, 2286, 1101, 1360, 1938, 1907, 1086, 94, 985, 1981, 1694, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {811, 1694, 1485, 2286, 1101, 1360, 174, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {1349, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1694, 1101, 2286, 1485, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}]
+        print("Using saved depots, with lowest cost:", min([7453177.211994515, 7964046.886082531, 7584148.660531587, 7964046.886082531, 7584148.660531587, 7584148.660531587, 7584148.660531587, 7584148.660531587, 8352251.634412729, 7964046.886082529]
 ))
         iterations = int(input("How many iterations: ")) 
     else:
         iterations = int(iterations)
-        sets_of_depots = generate_inital_depots()
+        sets_of_depots = generate_inital_locations()
     biomass_forecast = predict_biomass()
     for _ in tqdm(range(iterations), desc="Iteration:"):
         biomass_for_iteration = biomass_forecast
