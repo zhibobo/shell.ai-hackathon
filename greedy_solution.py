@@ -10,7 +10,7 @@ DISTANCE_MATRIX = pd.read_csv('Distance_Matrix.csv')
 SAMPLE_SUBMISSION = pd.read_csv("sample_submission.csv")
 NUMBER_OF_DEPOTS = 15
 NUMBER_OF_REFINERIES = 3
-DEPOT_PROCESSING_CAPACITY = 20000 * 0.90
+DEPOT_PROCESSING_CAPACITY = 20000 * 0.95
 REFINERY_PROCESSING_CAPACITY = 100000 * 0.95
 
 
@@ -200,7 +200,6 @@ def main():
         #biomass_forecast.to_csv('after_remove_empty_biomass.csv')
         dist_mat_2 = remove_empty_dist(index_to_remove, dist_mat_2)
         #dist_mat.to_csv('after_remove_empty_dist.csv')
-
     print("The total transportation cost (depots to refineries) is " + str(total_cost))
     # print(refineries)
     
