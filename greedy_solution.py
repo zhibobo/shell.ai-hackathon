@@ -50,6 +50,12 @@ def update_biomass_depot(new_depot: int, biomass_forecast: pd.DataFrame, dist_ma
     biomass_in_depot = 0
     shortest_dist_matrix = dist_mat.sort_values(by=str(new_depot), ascending=True)
     shortest_dist_col = shortest_dist_matrix.loc[:, str(new_depot)]
+    # This is an attempt to weight the biomass. 
+    # However, i think no difference is made lol
+    # dist_matrix_from_depot = dist_mat[str(new_depot)]
+    # forecast = biomass_forecast["2018/2019"]
+    # shortest_dist_col = dist_matrix_from_depot * forecast
+    # shortest_dist_col = shortest_dist_col.sort_values()
     for index, value in shortest_dist_col.items():
         if biomass_in_depot >= DEPOT_PROCESSING_CAPACITY:
             break
@@ -139,8 +145,8 @@ def update_biomass_refinery(new_refinery: int, depot_forecast: pd.DataFrame, dis
             update_pellet_demand_supply(new_refinery, index, depot_forecast.loc[index,'2018/2019'], pellet_demand_supply)
             biomass_in_refinery += depot_forecast.loc[index,'2018/2019']
             depot_forecast.loc[index,'2018/2019'] = 0
-        
-        cost += calculate_cost_of_single_trip(index, new_refinery, depot_forecast.loc[index,'2018/2019'])
+        cost += calculate_cost_of_single_trip(index, new_refinery, DEPOT_PROCESSING_CAPACITY)
+
     return cost, pd.DataFrame(depot_forecast)
 
 
@@ -168,7 +174,6 @@ def main():
     print("The total transportation cost (harvest to depot) is " + str(total_cost))
     depots = sorted(depots)
     print(depots)
-    
     #Choosing the refinaries
     pellet_demand_supply = {}
     depot_forecast = pd.DataFrame({'Index': depots, '2018/2019':[int(20000),]*NUMBER_OF_DEPOTS}, index = depots)
