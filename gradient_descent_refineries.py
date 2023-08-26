@@ -113,7 +113,7 @@ def generate_next_generation(learning_rate: int, depots: set[int], refinery_cost
 def main():
     depots = {388, 504, 811, 1485, 2286, 1101, 1360, 1938, 1907, 1086, 94, 985, 1981, 1694, 1469}
     random_refineries = generate_inital_locations(sets=1, locations=3)[0] # Generate random refineries
-    random_refineries = {1537, 2203, 1421}
+    random_refineries = {2282, 1198, 1295}
     learning_rate = 1
     print("Initial Refineries and Cost of each refinery:", fill_refineries(random_refineries.copy(), depots))
     refineries = random_refineries
@@ -126,9 +126,18 @@ def main():
 
 if __name__ == '__main__':
     main()
-
+'''
 {2403: 30481400.0, 1637: 9677564.0, 1421: 26258032.0}
 {1537: 12123123.0, 2203: 14049849.0, 1421: 14712261.5}
 {1426: 8476574.0, 2203: 12832213.5, 1527: 13749747.0}
 {1425: 8400380.5, 2203: 12832213.5, 1531: 13685041.5}
-# print(fill_refineries({1161, 1111, 1329}, {388, 504, 811, 1485, 2286, 1101, 1360, 1938, 1907, 1086, 94, 985, 1981, 1694, 1469}))
+
+{1578, 491, 2090}
+{2277: 14665749.0, 1198: 14306738.0, 1295: 9606733.0}
+{2282, 1198, 1295}
+{2282: 13601981.5, 1198: 14306738.0, 1295: 9606733.0}
+
+'''
+# print(fill_refineries({2282, 1198, 1295}, {388, 504, 811, 1485, 2286, 1101, 1360, 1938, 1907, 1086, 94, 985, 1981, 1694, 1469}))
+# print(fill_refineries({1425, 2203, 1531}, {388, 504, 811, 1485, 2286, 1101, 1360, 1938, 1907, 1086, 94, 985, 1981, 1694, 1469}))
+# print(fill_refineries({1161, 1111, 1330}, {388, 504, 811, 1485, 2286, 1101, 1360, 1938, 1907, 1086, 94, 985, 1981, 1694, 1469}))
