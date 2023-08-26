@@ -1,6 +1,7 @@
 import random
 import pandas as pd
 from tqdm import tqdm
+from greedy_solution import update_biomass_depot
 from solution import predict_biomass
 from cost_helpers import DEPOT_PROCESSING_CAPACITY, REFINERY_PROCESSING_CAPACITY, calculate_cost_of_single_trip
 
@@ -60,23 +61,25 @@ def fill_depots_and_calculate_transport(depots: set[int], forecasted_biomass: pd
     Returns:
         int: Transport cost necessary to fill up all depots.
     """
-    forecasted_biomass_list = forecasted_biomass["2018/2019"].tolist()
+    # forecasted_biomass_list = forecasted_biomass["2018/2019"].tolist()
     cost = 0
     for depot in depots:
-        biomass_in_depot = 0
-        shortest_distance_matrix = DISTANCE_MATRIX.sort_values(by=str(depot), ascending=True)
-        shortest_distance_col = shortest_distance_matrix.iloc[:, depot + 1]
-        for index, value in shortest_distance_col.items():
-            if biomass_in_depot >= DEPOT_PROCESSING_CAPACITY:
-                break
-            if biomass_in_depot + forecasted_biomass_list[index] > DEPOT_PROCESSING_CAPACITY: # exceeds 20k
-                forecasted_biomass_list[depot] -= DEPOT_PROCESSING_CAPACITY - biomass_in_depot
-                biomass_in_depot = DEPOT_PROCESSING_CAPACITY
-            else: 
-                biomass_in_depot += forecasted_biomass_list[index]
-                forecasted_biomass_list[index] = 0
+        move_to_depot_cost, forecasted_biomass = update_biomass_depot(depot,forecasted_biomass,DISTANCE_MATRIX)
+        cost += move_to_depot_cost
+        # biomass_in_depot = 0
+        # shortest_distance_matrix = DISTANCE_MATRIX.sort_values(by=str(depot), ascending=True)
+        # shortest_distance_col = shortest_distance_matrix.iloc[:, depot + 1]
+        # for index, value in shortest_distance_col.items():
+        #     if biomass_in_depot >= DEPOT_PROCESSING_CAPACITY:
+        #         break
+        #     if biomass_in_depot + forecasted_biomass_list[index] > DEPOT_PROCESSING_CAPACITY: # exceeds 20k
+        #         forecasted_biomass_list[depot] -= DEPOT_PROCESSING_CAPACITY - biomass_in_depot
+        #         biomass_in_depot = DEPOT_PROCESSING_CAPACITY
+        #     else: 
+        #         biomass_in_depot += forecasted_biomass_list[index]
+        #         forecasted_biomass_list[index] = 0
 
-            cost += calculate_cost_of_single_trip(index, depot, value)
+            # cost += calculate_cost_of_single_trip(index, depot, value)
     return cost
 
 def tournament_selection(population, fitness_scores, tournament_size):
@@ -147,30 +150,22 @@ def perform_mutation(children: list[set[int]], mutation_rate: float):
 def main():
     iterations = input("How many iterations: ")
     if iterations == "secret":
-        sets_of_depots = [
-            {388, 504, 811, 1485, 2286, 1101, 1360, 1938, 1907, 1086, 94, 985, 1981, 1694, 1469}, 
-            {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, 
-            {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, 
-            {811, 1694, 1485, 2286, 1101, 1360, 174, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, 
-            {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, 
-            {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, 
-            {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, 
-            {1349, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, 
-            {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, 
-            {388, 811, 1694, 1101, 2286, 1485, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}
-        ]
+        sets_of_depots = [{388, 504, 811, 1485, 1101, 2286, 1360, 1938, 1907, 1086, 94, 985, 1981, 1694, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 
+504, 985, 1086, 1981, 94, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1485, 2286, 1101, 1360, 1938, 1907, 94, 504, 985, 1086, 1981, 1694, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1694, 1485, 
+1101, 2286, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 94, 985, 1981, 1086, 1469}, {388, 811, 1485, 2286, 1101, 1360, 1938, 1907, 94, 504, 985, 1086, 1981, 1694, 1469}]
         print("Using saved depots, with lowest cost:", min([7453177.211994515, 7964046.886082531, 7584148.660531587, 7964046.886082531, 7584148.660531587, 7584148.660531587, 7584148.660531587, 7584148.660531587, 8352251.634412729, 7964046.886082529]
 ))
         iterations = int(input("How many iterations: ")) 
     else:
         iterations = int(iterations)
         sets_of_depots = generate_inital_locations()
-    biomass_forecast = predict_biomass()
+    biomass_forecast = predict_biomass().iloc[:,[0,11]]
     for _ in tqdm(range(iterations), desc="Iteration:"):
-        biomass_for_iteration = biomass_forecast
+
         cost_of_depot_sets = []
         # calculate cost to fill each depot in each set
         for depots in sets_of_depots:
+            biomass_for_iteration = biomass_forecast.copy()
             cost = fill_depots_and_calculate_transport(depots, biomass_for_iteration)
             cost_of_depot_sets.append(cost)  
         if _ == 0: print("Initial cost:", cost_of_depot_sets)
@@ -250,4 +245,11 @@ Final sets of Depots: [{388, 811, 1485, 2286, 1101, 1360, 1938, 1907, 504, 94, 1
 
 Final cost: [7584148.660531587, 19056053.07308357, 8352251.634412729, 7964046.886082531, 7964046.886082531, 8352251.634412729, 7453177.211994515, 7584148.660531587, 7964046.886082531, 7964046.886082531]
 Final sets of Depots: [{388, 504, 811, 1485, 2286, 1101, 1360, 1938, 1907, 1086, 94, 985, 1981, 1694, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 94, 985, 1981, 1086, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 504, 811, 1101, 2286, 1485, 1360, 1938, 1907, 1086, 94, 985, 1981, 1694, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}]
+
+
+=== New counting system ===
+
+Final cost: [14761528.944772772, 14889764.125693021, 14777044.042631028, 14761528.944772772, 14777044.042631028, 14777044.042631028, 14777044.042631028, 14761528.944772772, 14761528.944772772, 14761528.944772772]
+Final sets of Depots: [{388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1485, 2286, 1101, 1360, 1938, 1907, 94, 504, 985, 1086, 1981, 1694, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1485, 2286, 1101, 1360, 1938, 1907, 94, 504, 985, 1086, 1981, 1694, 1469}, {388, 811, 1485, 2286, 1101, 1360, 1938, 1907, 94, 504, 985, 1086, 1981, 1694, 1469}, {388, 811, 1485, 2286, 1101, 1360, 1938, 1907, 94, 504, 985, 1086, 1981, 1694, 1469}, {388, 811, 1694, 1485, 2286, 1101, 1360, 1938, 1907, 504, 985, 1086, 1981, 94, 1469}, {388, 811, 1485, 2286, 1101, 1360, 1938, 1907, 94, 504, 985, 1086, 1981, 1694, 1469}, {388, 811, 1485, 2286, 1101, 1360, 1938, 1907, 94, 504, 985, 1086, 1981, 1694, 1469}, {388, 811, 1485, 2286, 1101, 1360, 1938, 1907, 94, 504, 985, 1086, 1981, 1694, 1469}]
+
 '''
