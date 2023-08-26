@@ -104,7 +104,8 @@ def generate_next_generation(learning_rate: int, depots: set[int], refinery_cost
 
 def perform_mutation(refineries: list[int], mutation_rate: float, refineries_cost: int):
     # depots = [388, 504, 811, 1485, 2286, 1101, 1360, 1938, 1907, 1086, 94, 985, 1981, 1694, 1469]
-    depots = [341, 752, 810, 1016, 1045, 1161, 1224, 1330, 1358, 1403, 1595, 1691, 1719, 1751, 2031]
+    # depots = [341, 752, 810, 1016, 1045, 1161, 1224, 1330, 1358, 1403, 1595, 1691, 1719, 1751, 2031]
+    depots = [388, 504, 811, 1485, 2286, 1101, 1360, 1938, 1907, 1086, 94, 985, 1981, 1694, 1469]
     children = refineries.copy()
     child_length = len(children) 
     if random.random() < mutation_rate:
@@ -122,9 +123,10 @@ def perform_mutation(refineries: list[int], mutation_rate: float, refineries_cos
 
 def main():
     # depots = [388, 504, 811, 1485, 2286, 1101, 1360, 1938, 1907, 1086, 94, 985, 1981, 1694, 1469]
-    depots = [341, 752, 810, 1016, 1045, 1161, 1224, 1330, 1358, 1403, 1595, 1691, 1719, 1751, 2031]
+    # depots = [341, 752, 810, 1016, 1045, 1161, 1224, 1330, 1358, 1403, 1595, 1691, 1719, 1751, 2031]
+    depots = [388, 504, 811, 1485, 2286, 1101, 1360, 1938, 1907, 1086, 94, 985, 1981, 1694, 1469]
     random_refineries = list(generate_inital_locations(sets=1, locations=3)[0]) # Generate random refineries
-    # random_refineries = [2282, 1098, 1295]
+    # random_refineries = [106, 2161, 1541]
     # random_refineries = [1324, 218, 352]
     learning_rate = 1
     print("Initial Refineries and Cost of each refinery:", fill_refineries(random_refineries.copy(), depots))
@@ -161,6 +163,8 @@ if __name__ == '__main__':
 
 {1424: 7099498.0, 1750: 5876937.5, 1161: 6437399.5}
 [1424, 1750, 1161]
+
+{1360: 8336008.0, 741: 10838003.5, 1858: 9745523.5} [1360, 741, 1858]
 '''
 # print(fill_refineries({2282, 1198, 1295}, {388, 504, 811, 1485, 2286, 1101, 1360, 1938, 1907, 1086, 94, 985, 1981, 1694, 1469}))
 # print(fill_refineries({1425, 2203, 1531}, {388, 504, 811, 1485, 2286, 1101, 1360, 1938, 1907, 1086, 94, 985, 1981, 1694, 1469}))
