@@ -1,0 +1,40 @@
+Optimizing Biomass Transportation for Shell in Gujarat: Approach and Solution
+
+In our collaborative effort to optimize the transportation of biomass for Shell in Gujarat, we employed a systematic approach to address the challenges of depot and refinery location selection, while also considering biomass forecasting. Here, we outline our key assumptions, the strategies we employed, and our reflections on the process.
+
+Key Assumptions:
+
+Depot-Refinery Correlation: We assumed that optimal depot locations would also yield the best refinery locations. This simplification allowed us to focus separately on the calculation of depots and refineries.
+
+Minimizing Underutilization Cost: Our approach aimed to fill depots to capacity to minimize underutilization costs.
+
+Optimum Number of Depots and Refineries: We utilized an elaborate calculation to determine the ideal number of depots and refineries, factoring in various parameters such as forecasted biomass and constraints. This calculation led us to an appropriate count of depots and refineries that balanced efficiency and cost-effectiveness.
+
+Biomass Forecasting Approach:
+
+Exponential Smoothing Model: By analyzing historical data spanning from 2010 to 2017, we employed the statsmodels package in Python to construct an exponential smoothing model. This model enabled us to forecast biomass transportation requirements for both 2018 and 2019, assuming uniformity for both years.
+
+Reflections on Forecasting: In hindsight, we acknowledge that our emphasis on depot and refinery generation overshadowed the importance of accurate biomass forecasting. We recognize that more advanced predictive models could substantially enhance the accuracy of our overall solution. Should we have the opportunity to participate in a subsequent round, we commit to dedicating more attention to refining our biomass prediction model.
+
+Generating Depots:
+
+Greedy Algorithm:
+
+We designed a greedy algorithm to generate depot locations. For each biomass pile, we calculated the cost of transporting biomass from all other piles and selected the location with the lowest cost as the first depot site.
+Simulating biomass movement from nearby piles to the chosen depot, we continued this process iteratively until the depot reached full capacity. We then removed the depot and empty piles from consideration.
+This process was repeated until 15 depot locations were identified.
+Genetic Algorithm:
+
+Implementing a genetic algorithm, we treated 10 sets of 15 depots as one generation. Through a tournament selection process based on transportation cost calculations, we retained the best depot configurations while introducing random mutations for diversity.
+Although the genetic algorithm produced results akin to the greedy approach, we encountered challenges in normalizing and engineering features across generations. To mitigate these issues, we adopted a tournament selection mechanism.
+Generating Refineries:
+
+Greedy Solution:
+
+Our approach to generating refineries paralleled the methodology used for depots. We considered all depot locations as potential refinery sites.
+Employing the same cost-based selection process, we identified prime refinery locations in alignment with depot choices.
+Gradient Descent:
+
+Utilizing gradient descent, we aimed to pinpoint local minima for minimizing pellet transportation costs to refineries. Random mutations were introduced to explore potentially more effective solutions.
+Despite the promising outcomes of gradient descent in certain scenarios, it was not integrated into our final submission due to various constraints.
+Our collaborative endeavor culminated in a multifaceted strategy to optimize biomass transportation for Shell in Gujarat. While we dedicated substantial attention to depot and refinery optimization, we recognize the imperative need for a refined biomass forecasting model. The synergy of greedy and genetic algorithms, along with gradient descent techniques, illustrated the complexity of tackling biomass logistics challenges. In the future, we commit to a more holistic approach that encompasses accurate biomass prediction while effectively leveraging optimization techniques.
