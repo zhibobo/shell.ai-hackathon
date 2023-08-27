@@ -23,3 +23,33 @@ cheapest to fill up with the surrounding depots, where cost is calculated by dep
 multiplied by distance. We then select that depot and fill up it up with the surrounding 
 pellets. We remove the pellets from the grid, and find the cheapest refinery to fill up again. 
 By repeating this process, we find the 3 cheapest refinaries that can minimize cost.
+
+
+Key Assumptions:
+1. we assumed that the best Depot locations would give us the best Refinery locations. This would simplify the problem to seperate the calculation of depots and refineries.
+2. We assumed that we should always fill depots to minimize Underutilization cost.
+3. We calculated and assumed an optimum number of depots + refineries, using the following logic:
+    As there is limited information for forecasting biomass, an average is used to forecast.
+
+    Total forecasted biomass is 341k. 
+    Accounting for fluctuations of 5%, 324k & 359k 
+    Minimum biomass to collect (constraints is 80%), 259k & 286k. 
+    Safe to collect more than 286k < 300k = 15 depots (multiples of 20k)
+
+forecast approach:
+1. using data from 2010-2017, fitted a exponental smoothing model from statsmodels package in python to generate forecast for 2018/2019. we assumed same for both years
+2. In hindsight, we focused more of our time on generating depots and refineries. However, we may have lost many points when it came to forecasting biomass. Given a chance to participate in the second round, we would place more emphasis in coming up with a better model to predict biomass. 
+
+generate depots:
+1. greedy algorithm
+    a. for each biomass pile, calculate cost of transporting all of the biomass from the remaining piles. take the one with lowest cost as first depot location. simulate biomass movement from the nearest pile to the depot until depot is fully filled. remove depot and empty piles from consideration. repeat process until 15 depots are generated.
+2. genetic algorithm
+    a. Treat 10 sets of 15 depots as one generation. Run a tournament based off cost calculation for total cost of transporting biomass to each depot. Winners pass down the best depots, and random mutation occurs. Repeat this process. We ran this process for many iterations, and achieved a similar result to the greedy solution. As it was difficult to effectively normalize and engineer the features of each generation, we chose a tournament selection to bypass any normalization issues. However, this did not generate our final submission as the greedy solution produced the best outcome.
+
+
+generate_refineries:
+1. greedy solution.
+    a. considering all depot locations as potential refinery locations.
+    b. use same approach as generating depots.
+2. gradient descent
+    a. As refinery count is small, running gradient descent to find the a local minima proved useful in generating a low cost for transportation of pellets to refineries. By introducing random mutation, we were also able to occasionally escape local minima to more effective solutions. However, we were not able to apply this approach to the final submission
